@@ -7,7 +7,7 @@ package org.example;
 import java.util.Scanner;
 
 /**
- * Calculator application implemened using OOP principles.
+ * Calculator application implemented using OOP principles.
  */
 public class Main {
 
@@ -19,6 +19,20 @@ public class Main {
     public static void main(String[] args) {
         Calculator calculator = new Calculator();
         calculator.start();
+    }
+}
+
+/**
+ * Custom exception for division by zero.
+ */
+class DivisionByZeroException extends Exception {
+    /**
+     * Constructs a new DivisionByZeroException with the specified detail message.
+     *
+     * @param message the detail message
+     */
+    public DivisionByZeroException(String message) {
+        super(message);
     }
 }
 
@@ -46,33 +60,39 @@ class Calculator {
         boolean continueCalculations = true;
 
         while (continueCalculations) {
-            displayMenu();
-            int choice = getMenuChoice();
+            try {
+                displayMenu();
+                int choice = getMenuChoice();
 
-            switch (choice) {
-                case 1:
-                    performAddition();
-                    break;
-                case 2:
-                    performSubtraction();
-                    break;
-                case 3:
-                    performMultiplication();
-                    break;
-                case 4:
-                    performDivision();
-                    break;
-                case 5:
-                    displayResult();
-                    break;
-                case 6:
-                    clearResult();
-                    break;
-                case 0:
-                    continueCalculations = false;
-                    break;
-                default:
-                    System.out.println("Invalid choice!");
+                switch (choice) {
+                    case 1:
+                        performAddition();
+                        break;
+                    case 2:
+                        performSubtraction();
+                        break;
+                    case 3:
+                        performMultiplication();
+                        break;
+                    case 4:
+                        performDivision();
+                        break;
+                    case 5:
+                        displayResult();
+                        break;
+                    case 6:
+                        clearResult();
+                        break;
+                    case 0:
+                        continueCalculations = false;
+                        break;
+                    default:
+                        System.out.println("Invalid choice!");
+                }
+            } catch (DivisionByZeroException e) {
+                System.err.println("Calculation error: " + e.getMessage());
+            } catch (Exception e) {
+                System.err.println("Unexpected error: " + e.getMessage());
             }
         }
 
@@ -152,13 +172,17 @@ class Calculator {
 
     /**
      * Performs division operation.
+     *
+     * @throws DivisionByZeroException if division by zero is attempted
      */
-    private void performDivision() {
+    private void performDivision() throws DivisionByZeroException {
         double number = getNumberInput();
-        if (number == 0) {
-            System.out.println("Error: Division by zero is not allowed!");
-            return;
+
+        // Check for division by zero using MathUtils
+        if (MathUtils.isZero(number)) {
+            throw new DivisionByZeroException("Division by zero is not allowed!");
         }
+
         double previousResult = result;
         result = Operation.DIVISION.calculate(result, number);
         System.out.printf("Result: %.4f / %.4f = %.4f%n", previousResult, number, result);
@@ -230,9 +254,12 @@ class MathUtils {
      * @param value the number to round
      * @param places the number of decimal places
      * @return the rounded number
+     * @throws IllegalArgumentException if places is negative
      */
     public static double round(double value, int places) {
-        if (places < 0) throw new IllegalArgumentException();
+        if (places < 0) {
+            throw new IllegalArgumentException("Decimal places cannot be negative: " + places);
+        }
 
         long factor = (long) Math.pow(10, places);
         value = value * factor;
